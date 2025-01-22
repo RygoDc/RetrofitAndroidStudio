@@ -36,10 +36,13 @@ android {
 // com.squareup.retrofit2:converter-gson:2.11.0
 // com.squareup.okhttp3:okhttp:4.12.0
 // com.squareup.okhttp3:logging-interceptor:4.12.0
+// com.github.bumptech.glide:glide:4.15.1
+// com.github.bumptech.glide:compiler:4.15.1
 
 
 
 dependencies {
+    implementation(libs.glide)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
     implementation(libs.gson)

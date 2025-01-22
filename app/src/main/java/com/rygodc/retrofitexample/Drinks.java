@@ -16,5 +16,8 @@ public class Drinks {
         public String coctailImageUrl;
         @SerializedName("idDrink")
         public String coctailIid;
+
+        @SerializedName("strInstructionsES")
+        public String coctailInstructions;
     }
 }

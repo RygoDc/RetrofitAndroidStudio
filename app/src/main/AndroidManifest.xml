@@ -12,6 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RetrofitExample"
         tools:targetApi="31">
+        <activity android:name=".CoctailDetailActivity"></activity>
         <activity
             android:name=".MainActivity"
             android:exported="true">

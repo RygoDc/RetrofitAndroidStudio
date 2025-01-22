@@ -1,14 +1,16 @@
 package com.rygodc.retrofitexample;
 
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.TextView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -16,37 +18,53 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
+    private RecyclerView coctailRecyclerView;
+    private CoctailAdapter adapter;
+    private EditText ingredientInput;
+    private Button searchButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
-        TextView principal = findViewById(R.id.principal);
+        ingredientInput = findViewById(R.id.ingredientInput);
+        searchButton = findViewById(R.id.searchButton);
+        coctailRecyclerView = findViewById(R.id.coctailRecyclerView);
+
+        coctailRecyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        adapter = new CoctailAdapter(new ArrayList<>(), this::showCoctailDetails);
+        coctailRecyclerView.setAdapter(adapter);
+
+        searchButton.setOnClickListener(v -> searchCoctails());
+    }
+
+    private void searchCoctails() {
+        String ingredient = ingredientInput.getText().toString().trim();
+        if (ingredient.isEmpty()) return;
+
         ApiInterface apiInterface = ApiClient.getClient().create(ApiInterface.class);
-        Call<Drinks> call = apiInterface.getDrinksByLicour("Gin");
-
-        call.enqueue(new Callback<Drinks>() {
+        apiInterface.getDrinksByLicour(ingredient).enqueue(new Callback<Drinks>() {
             @Override
             public void onResponse(Call<Drinks> call, Response<Drinks> response) {
-                Log.d("Codigo", response.body()+"");
-                Drinks coctails = response.body();
-                String todaLaInformacion = "";
-                for(Drinks.Coctail coctail : coctails.drinks){
-                    todaLaInformacion += coctail.coctailName + "\n";
+                if (response.isSuccessful() && response.body() != null) {
+                    adapter = new CoctailAdapter(response.body().drinks, MainActivity.this::showCoctailDetails);
+                    coctailRecyclerView.setAdapter(adapter);
                 }
-                Log.d("TodaLaInfo", todaLaInformacion);
-                principal.setText(todaLaInformacion);
             }
+
             @Override
-            public void onFailure(Call<Drinks> call, Throwable throwable) {
-                Log.d("Call -> mal", throwable.getMessage());
+            public void onFailure(Call<Drinks> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void showCoctailDetails(Drinks.Coctail coctail) {
+        new AlertDialog.Builder(this)
+                .setTitle(coctail.coctailName)
+                .setMessage("ID: " + coctail.coctailIid)
+                .setPositiveButton("OK", null)
+                .show();
     }
 }
